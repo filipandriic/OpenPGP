@@ -46,6 +46,8 @@ import org.bouncycastle.openpgp.operator.jcajce.JcePBESecretKeyEncryptorBuilder;
 
 public class ManageKeysController {
 	
+	
+	
 	private static String PUBLIC_KEY_RING_COLLECTION_PATH = "public_key_ring_collection.asc";
 	private static String SECRET_KEY_RING_COLLECTION_PATH = "private_key_ring_collection.asc";
 	
@@ -78,8 +80,8 @@ public class ManageKeysController {
 		}
 	}
 	
-	public static List<String> loadSecretKeyRingCollection() {
-		List<String> secretKeyRings = new LinkedList<>();
+	public static List<KeyInfoWrapper> loadSecretKeyRingCollection() {
+		List<KeyInfoWrapper> secretKeyRings = new LinkedList<>();
 		
 		for (PGPSecretKeyRing secretKeyRing : secretKeyRingCollection) {
 			secretKeyRings.add(parseSecretKeyRing(secretKeyRing));
@@ -88,8 +90,8 @@ public class ManageKeysController {
 		return secretKeyRings;
 	}
 	
-	public static List<String> loadPublicKeyRingCollection() {
-		List<String> publicKeyRings = new LinkedList<>();
+	public static List<KeyInfoWrapper> loadPublicKeyRingCollection() {
+		List<KeyInfoWrapper> publicKeyRings = new LinkedList<>();
 		
 		for (PGPPublicKeyRing publicKeyRing : publicKeyRingCollection) {
 			publicKeyRings.add(parsePublicKeyRing(publicKeyRing));
@@ -98,24 +100,14 @@ public class ManageKeysController {
 		return publicKeyRings;
 	}
 	
-	private static String parsePublicKeyRing(PGPPublicKeyRing publicKeyRing) {
-		StringBuilder ret = new StringBuilder();
-		
-		ret.append(publicKeyRing.getPublicKey().getUserIDs().next());
-		ret.append(" | ");
-		ret.append(publicKeyRing.getPublicKey().getKeyID());
-		
-		return ret.toString();
+	private static KeyInfoWrapper parsePublicKeyRing(PGPPublicKeyRing publicKeyRing) {
+		String identity[] = publicKeyRing.getPublicKey().getUserIDs().next().split(" ");
+		return new KeyInfoWrapper(identity[0], identity[1], publicKeyRing.getPublicKey().getKeyID());
 	}
 	
-	private static String parseSecretKeyRing(PGPSecretKeyRing secretKeyRing) {
-		StringBuilder ret = new StringBuilder();
-		
-		ret.append(secretKeyRing.getSecretKey().getUserIDs().next());
-		ret.append(" | ");
-		ret.append(secretKeyRing.getSecretKey().getKeyID());
-		
-		return ret.toString();
+	private static KeyInfoWrapper parseSecretKeyRing(PGPSecretKeyRing secretKeyRing) {
+		String identity[] = secretKeyRing.getSecretKey().getUserIDs().next().split(" ");
+		return new KeyInfoWrapper(identity[0], identity[1], secretKeyRing.getSecretKey().getKeyID());
 	}
 	
 	public static void generateKeys(String name, String email, String password, int keySize) throws Exception {
@@ -138,13 +130,14 @@ public class ManageKeysController {
         
         PGPDigestCalculator sha1Calc = new JcaPGPDigestCalculatorProviderBuilder().build().get(HashAlgorithmTags.SHA1);
         PGPKeyPair keyPair = new JcaPGPKeyPair(PGPPublicKey.RSA_GENERAL, pair, new Date());
-        String identity = name + " | " + email;
+        String identity = name + " " + email;
         
         PGPKeyRingGenerator keyRingGenerator = new PGPKeyRingGenerator(PGPSignature.POSITIVE_CERTIFICATION, keyPair,
                 identity, sha1Calc, null, null, new JcaPGPContentSignerBuilder(keyPair.getPublicKey().getAlgorithm(), HashAlgorithmTags.SHA1), new JcePBESecretKeyEncryptorBuilder(PGPEncryptedData.AES_256, sha1Calc).setProvider("BC").build(password.toCharArray()));
        
         PGPPublicKeyRing publicKeyRing = keyRingGenerator.generatePublicKeyRing();
         PGPSecretKeyRing secretKeyRing = keyRingGenerator.generateSecretKeyRing();
+        
         
         publicKeyRingCollection = PGPPublicKeyRingCollection.addPublicKeyRing(publicKeyRingCollection, publicKeyRing);
         secretKeyRingCollection = PGPSecretKeyRingCollection.addSecretKeyRing(secretKeyRingCollection, secretKeyRing);
@@ -193,6 +186,30 @@ public class ManageKeysController {
 				publicKeyRing.encode(publicKeysOutput);
 	        publicKeysOutput.close();
 		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public static void deletePublicKeyRing(long keyID) {
+		try {
+			PGPPublicKeyRing publicKeyRing = publicKeyRingCollection.getPublicKeyRing(keyID);
+			publicKeyRingCollection = PGPPublicKeyRingCollection.removePublicKeyRing(publicKeyRingCollection, publicKeyRing);
+			
+			exportPublicKeyRingCollection();
+		} catch (PGPException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public static void deleteSecretKeyRing(long keyID) {
+		try {
+			PGPSecretKeyRing secretKeyRing = secretKeyRingCollection.getSecretKeyRing(keyID);
+			secretKeyRingCollection = PGPSecretKeyRingCollection.removeSecretKeyRing(secretKeyRingCollection, secretKeyRing);
+			
+			exportSecretKeyRingCollection();
+		} catch (PGPException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

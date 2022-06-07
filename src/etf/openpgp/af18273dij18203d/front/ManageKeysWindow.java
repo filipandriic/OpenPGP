@@ -8,14 +8,18 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.border.EmptyBorder;
 
+import etf.openpgp.af18273dij18203d.back.KeyInfoWrapper;
 import etf.openpgp.af18273dij18203d.back.ManageKeysController;
 
 public class ManageKeysWindow extends JFrame {
 	private static WelcomeWindow welcomeWindow;
+	private static JList<Object> publicKeysList = new JList<>();
+	private static JList<Object> secretKeysList = new JList<>();
 	
 	public ManageKeysWindow() {
 		welcomeWindow = WelcomeWindow.getInstance();
@@ -66,21 +70,23 @@ public class ManageKeysWindow extends JFrame {
 		//public keys
 		JPanel publicKeysPanel =  new JPanel(new BorderLayout());
 		publicKeysPanel.setBorder(new EmptyBorder(10, 30, 10, 30));
-		JTextArea publicKeysText = new JTextArea();
-		for (String publicKeyRing : ManageKeysController.loadPublicKeyRingCollection()) {
-			publicKeysText.append(publicKeyRing + "\n");
-		}
-		publicKeysText.setEditable(false);
+		
 		JPanel publicKeyButtonsPanel = new JPanel();
+		initializePublicKeysList();
 		JButton importPublicKeyButton = new JButton("Import");
 		JButton exportPublicKeyButton = new JButton("Export");
 		JButton deletePublicKeyButton = new JButton("Delete");
+		deletePublicKeyButton.addActionListener((ev) -> {
+			KeyInfoWrapper selected = (KeyInfoWrapper) publicKeysList.getSelectedValue();
+			ManageKeysController.deletePublicKeyRing(selected.getKeyID());
+			initializePublicKeysList();
+		});
 		publicKeyButtonsPanel.add(importPublicKeyButton);
 		publicKeyButtonsPanel.add(exportPublicKeyButton);
 		publicKeyButtonsPanel.add(deletePublicKeyButton);
 		
 		publicKeysPanel.add(new JLabel("Public key ring"), BorderLayout.NORTH);
-		publicKeysPanel.add(publicKeysText, BorderLayout.CENTER);
+		publicKeysPanel.add(publicKeysList, BorderLayout.CENTER);
 		publicKeysPanel.add(publicKeyButtonsPanel, BorderLayout.SOUTH);
 		
 		keyRingsPanel.add(publicKeysPanel);
@@ -88,21 +94,22 @@ public class ManageKeysWindow extends JFrame {
 		//private keys
 		JPanel secretKeysPanel =  new JPanel(new BorderLayout());
 		secretKeysPanel.setBorder(new EmptyBorder(10, 30, 10, 30));
-		JTextArea secretKeysText = new JTextArea();
-		for (String secretKeyRing : ManageKeysController.loadSecretKeyRingCollection()) {
-			secretKeysText.append(secretKeyRing + "\n");
-		}
-		secretKeysText.setEditable(false);
+		initializeSecretKeysList();
 		JPanel secretKeyButtonsPanel = new JPanel();
 		JButton importSecretKeyButton = new JButton("Import");
 		JButton exportSecretKeyButton = new JButton("Export");
 		JButton deleteSecretKeyButton = new JButton("Delete");
+		deleteSecretKeyButton.addActionListener((ev) -> {
+			KeyInfoWrapper selected = (KeyInfoWrapper) secretKeysList.getSelectedValue();
+			ManageKeysController.deleteSecretKeyRing(selected.getKeyID());
+			initializeSecretKeysList();
+		});
 		secretKeyButtonsPanel.add(importSecretKeyButton);
 		secretKeyButtonsPanel.add(exportSecretKeyButton);
 		secretKeyButtonsPanel.add(deleteSecretKeyButton);
 		
 		secretKeysPanel.add(new JLabel("Private key ring"), BorderLayout.NORTH);
-		secretKeysPanel.add(secretKeysText, BorderLayout.CENTER);
+		secretKeysPanel.add(secretKeysList, BorderLayout.CENTER);
 		secretKeysPanel.add(secretKeyButtonsPanel, BorderLayout.SOUTH);
 		
 		keyRingsPanel.add(secretKeysPanel);
@@ -111,5 +118,13 @@ public class ManageKeysWindow extends JFrame {
 		panel.add(topPanel, BorderLayout.NORTH);
 		
 		add(panel);
+	}
+	
+	public static void initializePublicKeysList() {
+		publicKeysList.setListData(ManageKeysController.loadPublicKeyRingCollection().toArray());
+	}
+	
+	public static void initializeSecretKeysList() {
+		secretKeysList.setListData(ManageKeysController.loadSecretKeyRingCollection().toArray());
 	}
 }

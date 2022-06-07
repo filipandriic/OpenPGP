@@ -82,6 +82,8 @@ public class GenerateKeysWindow extends JFrame {
 			try {
 				int keySize = Integer.parseInt(algorithmsBox.getSelectedItem().toString().substring(4));
 				ManageKeysController.generateKeys(nameField.getText(), emailField.getText(), passwordField.getText(), keySize);
+				ManageKeysWindow.initializePublicKeysList();
+				ManageKeysWindow.initializeSecretKeysList();
 				dispose();
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
