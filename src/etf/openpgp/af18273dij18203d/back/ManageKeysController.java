@@ -1,23 +1,16 @@
 package etf.openpgp.af18273dij18203d.back;
 
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
-import java.security.SignatureException;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -28,18 +21,14 @@ import org.bouncycastle.openpgp.PGPEncryptedData;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPKeyPair;
 import org.bouncycastle.openpgp.PGPKeyRingGenerator;
-import org.bouncycastle.openpgp.PGPPrivateKey;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
 import org.bouncycastle.openpgp.PGPPublicKeyRingCollection;
-import org.bouncycastle.openpgp.PGPSecretKey;
 import org.bouncycastle.openpgp.PGPSecretKeyRing;
 import org.bouncycastle.openpgp.PGPSecretKeyRingCollection;
 import org.bouncycastle.openpgp.PGPSignature;
-import org.bouncycastle.openpgp.PGPUtil;
 import org.bouncycastle.openpgp.operator.PGPDigestCalculator;
 import org.bouncycastle.openpgp.operator.bc.BcKeyFingerprintCalculator;
-import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator;
 import org.bouncycastle.openpgp.operator.jcajce.JcaPGPContentSignerBuilder;
 import org.bouncycastle.openpgp.operator.jcajce.JcaPGPDigestCalculatorProviderBuilder;
 import org.bouncycastle.openpgp.operator.jcajce.JcaPGPKeyPair;
@@ -58,12 +47,17 @@ public class ManageKeysController {
 	private static PGPPublicKeyRingCollection publicKeyRingCollection;
 	private static PGPSecretKeyRingCollection secretKeyRingCollection;
 	
-	private static BcKeyFingerprintCalculator keyFingerprintCalculator;
+	public static PGPPublicKeyRingCollection getPublicKeyRingCollection() {
+		return publicKeyRingCollection;
+	}
+
+	public static PGPSecretKeyRingCollection getSecretKeyRingCollection() {
+		return secretKeyRingCollection;
+	}
+
+	private static BcKeyFingerprintCalculator keyFingerprintCalculator = new BcKeyFingerprintCalculator();
 	
 	public static void init() {
-		
-		keyFingerprintCalculator = new BcKeyFingerprintCalculator();
-		
 		try {
 			File publicKeyRingCollectionFile = new File(PUBLIC_KEY_RING_COLLECTION_PATH);
 			File secretKeyRingCollectionFile = new File(SECRET_KEY_RING_COLLECTION_PATH);
@@ -102,6 +96,48 @@ public class ManageKeysController {
 		}
 		
 		return publicKeyRings;
+	}
+	
+	public static void importPublicKeyRings(File file) {
+		PGPPublicKeyRingCollection publicKeyRingCollectionFromFile = null;
+		try {
+			if (file.exists()) {
+				publicKeyRingCollectionFromFile = new PGPPublicKeyRingCollection(new ArmoredInputStream(new FileInputStream(file)), keyFingerprintCalculator);
+				
+				for (PGPPublicKeyRing publicKeyRing : publicKeyRingCollectionFromFile)
+					publicKeyRingCollection = PGPPublicKeyRingCollection.addPublicKeyRing(publicKeyRingCollection, publicKeyRing);
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (PGPException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public static void importSecretKeyRings(File file) {
+		PGPSecretKeyRingCollection secretKeyRingCollectionFromFile = null;
+		try {
+			if (file.exists()) {
+				secretKeyRingCollectionFromFile = new PGPSecretKeyRingCollection(new ArmoredInputStream(new FileInputStream(file)), keyFingerprintCalculator);
+				
+				for (PGPSecretKeyRing secretKeyRing : secretKeyRingCollectionFromFile)
+					secretKeyRingCollection = PGPSecretKeyRingCollection.addSecretKeyRing(secretKeyRingCollection, secretKeyRing);
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (PGPException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	private static KeyInfoWrapper parsePublicKeyRing(PGPPublicKeyRing publicKeyRing) {
@@ -265,99 +301,5 @@ public class ManageKeysController {
 			e.printStackTrace();
 		}
 	}
-	
-	public static PGPPublicKey readPublicKey(String fileName) throws IOException, PGPException
-    {
-        InputStream keyIn = new BufferedInputStream(new FileInputStream(fileName));
-        PGPPublicKey pubKey = readPublicKey(keyIn);
-        keyIn.close();
-        return pubKey;
-    }
-
-    /**
-     * A simple routine that opens a key ring file and loads the first available key
-     * suitable for encryption.
-     * 
-     * @param input data stream containing the public key data
-     * @return the first public key found.
-     * @throws IOException
-     * @throws PGPException
-     */
-    private static PGPPublicKey readPublicKey(InputStream input) throws IOException, PGPException
-    {
-        PGPPublicKeyRingCollection pgpPub = new PGPPublicKeyRingCollection(
-            PGPUtil.getDecoderStream(input), new JcaKeyFingerprintCalculator());
-
-        //
-        // we just loop through the collection till we find a key suitable for encryption, in the real
-        // world you would probably want to be a bit smarter about this.
-        //
-
-        Iterator<PGPPublicKeyRing> keyRingIter = pgpPub.getKeyRings();
-        while (keyRingIter.hasNext())
-        {
-            PGPPublicKeyRing keyRing = (PGPPublicKeyRing)keyRingIter.next();
-
-            Iterator<PGPPublicKey> keyIter = keyRing.getPublicKeys();
-            while (keyIter.hasNext())
-            {
-                PGPPublicKey key = (PGPPublicKey)keyIter.next();
-
-                if (key.isEncryptionKey())
-                {
-                    return key;
-                }
-            }
-        }
-
-        throw new IllegalArgumentException("Can't find encryption key in key ring.");
-    }
-    
-    private static PGPSecretKey readSecretKey(String fileName) throws IOException, PGPException
-    {
-        InputStream keyIn = new BufferedInputStream(new FileInputStream(fileName));
-        PGPSecretKey secKey = readSecretKey(keyIn);
-        keyIn.close();
-        return secKey;
-    }
-
-    /**
-     * A simple routine that opens a key ring file and loads the first available key
-     * suitable for signature generation.
-     * 
-     * @param input stream to read the secret key ring collection from.
-     * @return a secret key.
-     * @throws IOException on a problem with using the input stream.
-     * @throws PGPException if there is an issue parsing the input stream.
-     */
-    private static PGPSecretKey readSecretKey(InputStream input) throws IOException, PGPException
-    {
-        PGPSecretKeyRingCollection pgpSec = new PGPSecretKeyRingCollection(
-            PGPUtil.getDecoderStream(input), new JcaKeyFingerprintCalculator());
-
-        //
-        // we just loop through the collection till we find a key suitable for encryption, in the real
-        // world you would probably want to be a bit smarter about this.
-        //
-
-        Iterator<PGPSecretKeyRing> keyRingIter = pgpSec.getKeyRings();
-        while (keyRingIter.hasNext())
-        {
-            PGPSecretKeyRing keyRing = (PGPSecretKeyRing)keyRingIter.next();
-
-            Iterator<PGPSecretKey> keyIter = keyRing.getSecretKeys();
-            while (keyIter.hasNext())
-            {
-                PGPSecretKey key = (PGPSecretKey)keyIter.next();
-
-                if (key.isSigningKey())
-                {
-                    return key;
-                }
-            }
-        }
-
-        throw new IllegalArgumentException("Can't find signing key in key ring.");
-    }
 }
 

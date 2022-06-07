@@ -2,10 +2,12 @@ package etf.openpgp.af18273dij18203d.front;
 
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
+import java.io.File;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -13,6 +15,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import etf.openpgp.af18273dij18203d.back.KeyInfoWrapper;
 import etf.openpgp.af18273dij18203d.back.ManageKeysController;
@@ -76,6 +79,15 @@ public class ManageKeysWindow extends JFrame {
 		JPanel publicKeyButtonsPanel = new JPanel();
 		initializePublicKeysList();
 		JButton importPublicKeyButton = new JButton("Import");
+		importPublicKeyButton.addActionListener((ev) -> {
+			JFileChooser fileChooser = new JFileChooser();
+			fileChooser.setFileFilter(new FileNameExtensionFilter("ASCII", "asc"));
+			int returnValue = fileChooser.showSaveDialog(null);
+			if (returnValue == JFileChooser.APPROVE_OPTION) {
+				ManageKeysController.importPublicKeyRings(fileChooser.getSelectedFile());
+				initializePublicKeysList();
+			}
+		});
 		JButton exportPublicKeyButton = new JButton("Export");
 		exportPublicKeyButton.addActionListener((ev) -> {
 			KeyInfoWrapper selected = (KeyInfoWrapper) publicKeysList.getSelectedValue();
@@ -106,6 +118,15 @@ public class ManageKeysWindow extends JFrame {
 		initializeSecretKeysList();
 		JPanel secretKeyButtonsPanel = new JPanel();
 		JButton importSecretKeyButton = new JButton("Import");
+		importSecretKeyButton.addActionListener((ev) -> {
+			JFileChooser fileChooser = new JFileChooser();
+			fileChooser.setFileFilter(new FileNameExtensionFilter("ASCII", "asc"));
+			int returnValue = fileChooser.showSaveDialog(null);
+			if (returnValue == JFileChooser.APPROVE_OPTION) {
+				ManageKeysController.importSecretKeyRings(fileChooser.getSelectedFile());
+				initializeSecretKeysList();
+			}
+		});
 		JButton exportSecretKeyButton = new JButton("Export");
 		exportSecretKeyButton.addActionListener((ev) -> {
 			KeyInfoWrapper selected = (KeyInfoWrapper) secretKeysList.getSelectedValue();
