@@ -28,6 +28,7 @@ import org.bouncycastle.openpgp.PGPEncryptedData;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPKeyPair;
 import org.bouncycastle.openpgp.PGPKeyRingGenerator;
+import org.bouncycastle.openpgp.PGPPrivateKey;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
 import org.bouncycastle.openpgp.PGPPublicKeyRingCollection;
@@ -42,14 +43,17 @@ import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator;
 import org.bouncycastle.openpgp.operator.jcajce.JcaPGPContentSignerBuilder;
 import org.bouncycastle.openpgp.operator.jcajce.JcaPGPDigestCalculatorProviderBuilder;
 import org.bouncycastle.openpgp.operator.jcajce.JcaPGPKeyPair;
+import org.bouncycastle.openpgp.operator.jcajce.JcePBESecretKeyDecryptorBuilder;
 import org.bouncycastle.openpgp.operator.jcajce.JcePBESecretKeyEncryptorBuilder;
+
+import etf.openpgp.af18273dij18203d.front.ManageKeysWindow;
 
 public class ManageKeysController {
 	
 	
 	
 	private static String PUBLIC_KEY_RING_COLLECTION_PATH = "public_key_ring_collection.asc";
-	private static String SECRET_KEY_RING_COLLECTION_PATH = "private_key_ring_collection.asc";
+	private static String SECRET_KEY_RING_COLLECTION_PATH = "secret_key_ring_collection.asc";
 	
 	private static PGPPublicKeyRingCollection publicKeyRingCollection;
 	private static PGPSecretKeyRingCollection secretKeyRingCollection;
@@ -203,12 +207,59 @@ public class ManageKeysController {
 		}
 	}
 	
-	public static void deleteSecretKeyRing(long keyID) {
+	public static void deleteSecretKeyRing(long keyID, String password) {
 		try {
 			PGPSecretKeyRing secretKeyRing = secretKeyRingCollection.getSecretKeyRing(keyID);
-			secretKeyRingCollection = PGPSecretKeyRingCollection.removeSecretKeyRing(secretKeyRingCollection, secretKeyRing);
+			secretKeyRing.getSecretKey().extractPrivateKey(new JcePBESecretKeyDecryptorBuilder().setProvider("BC").build(password.toCharArray()));
 			
+			secretKeyRingCollection = PGPSecretKeyRingCollection.removeSecretKeyRing(secretKeyRingCollection, secretKeyRing);
 			exportSecretKeyRingCollection();
+			ManageKeysWindow.disableError();
+		} catch (PGPException e) {
+			ManageKeysWindow.showError();
+		}
+	}
+	
+	public static void exportPublicKeyRing(long keyID) {
+		ArmoredOutputStream publicKeyOutput = null;
+		
+		try {
+			publicKeyOutput = new ArmoredOutputStream(new FileOutputStream(new File("public_key_" + keyID + ".asc")));
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+        
+        try {
+        	PGPPublicKeyRing publicKeyRing = publicKeyRingCollection.getPublicKeyRing(keyID);
+			publicKeyRing.encode(publicKeyOutput);
+	        publicKeyOutput.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (PGPException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public static void exportSecretKeyRing(long keyID) {
+		ArmoredOutputStream secretKeyOutput = null;
+		
+		try {
+			secretKeyOutput = new ArmoredOutputStream(new FileOutputStream(new File("secret_key_" + keyID + ".asc")));
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+        
+        try {
+        	PGPSecretKeyRing secretKeyRing = secretKeyRingCollection.getSecretKeyRing(keyID);
+        	secretKeyRing.encode(secretKeyOutput);
+	        secretKeyOutput.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		} catch (PGPException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
