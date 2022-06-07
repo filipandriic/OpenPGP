@@ -1,5 +1,7 @@
 package etf.openpgp.af18273dij18203d.front;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.GridLayout;
 import java.io.File;
 
@@ -7,8 +9,12 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 import javax.swing.JFileChooser;
 
 public class ReceiveMessageWindow extends JFrame {
@@ -58,11 +64,16 @@ public class ReceiveMessageWindow extends JFrame {
 	        dispose();
 		});
 		topPanel.add(backButton);
-		
+		panel.add(topPanel, BorderLayout.NORTH);
 		JPanel filePanel = new JPanel();
 		filePanel.setLayout(new BoxLayout(filePanel, BoxLayout.PAGE_AXIS));
+		panel.setBorder(new EmptyBorder(10, 30, 10, 30));
+		JLabel fileLabel = new JLabel("Choose file for decrypting or signature for verifying:");
 		
-		panel.add(topPanel);
+		filePanel.add(fileLabel);
+		JSeparator separator = new JSeparator(SwingConstants.VERTICAL);
+	
+		panel.add(filePanel, BorderLayout.WEST);
 		add(panel);
 	}
 }
