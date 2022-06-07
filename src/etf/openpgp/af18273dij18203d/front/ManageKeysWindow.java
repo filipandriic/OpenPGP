@@ -24,7 +24,7 @@ public class ManageKeysWindow extends JFrame {
 	private static WelcomeWindow welcomeWindow;
 	private static JList<Object> publicKeysList = new JList<>();
 	private static JList<Object> secretKeysList = new JList<>();
-	private static JLabel error = new JLabel("Error");
+	private static JLabel error = new JLabel();
 	
 	public ManageKeysWindow() {
 		welcomeWindow = WelcomeWindow.getInstance();
@@ -170,7 +170,8 @@ public class ManageKeysWindow extends JFrame {
 		secretKeysList.setListData(ManageKeysController.loadSecretKeyRingCollection().toArray());
 	}
 	
-	public static void showError() {
+	public static void showError(String message) {
+		error.setText(message);
 		error.setVisible(true);
 	}
 	

@@ -105,7 +105,11 @@ public class ManageKeysController {
 				publicKeyRingCollectionFromFile = new PGPPublicKeyRingCollection(new ArmoredInputStream(new FileInputStream(file)), keyFingerprintCalculator);
 				
 				for (PGPPublicKeyRing publicKeyRing : publicKeyRingCollectionFromFile)
-					publicKeyRingCollection = PGPPublicKeyRingCollection.addPublicKeyRing(publicKeyRingCollection, publicKeyRing);
+					if (publicKeyRingCollection.getPublicKey(publicKeyRing.getPublicKey().getKeyID()) == null)
+						publicKeyRingCollection = PGPPublicKeyRingCollection.addPublicKeyRing(publicKeyRingCollection, publicKeyRing);
+					else ManageKeysWindow.showError("Can't import that.");
+				
+				exportPublicKeyRingCollection();
 			}
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -114,8 +118,7 @@ public class ManageKeysController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (PGPException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			ManageKeysWindow.showError("Can't import that.");
 		}
 	}
 	
@@ -126,7 +129,11 @@ public class ManageKeysController {
 				secretKeyRingCollectionFromFile = new PGPSecretKeyRingCollection(new ArmoredInputStream(new FileInputStream(file)), keyFingerprintCalculator);
 				
 				for (PGPSecretKeyRing secretKeyRing : secretKeyRingCollectionFromFile)
-					secretKeyRingCollection = PGPSecretKeyRingCollection.addSecretKeyRing(secretKeyRingCollection, secretKeyRing);
+					if (secretKeyRingCollection.getSecretKeyRing(secretKeyRing.getSecretKey().getKeyID()) == null)
+						secretKeyRingCollection = PGPSecretKeyRingCollection.addSecretKeyRing(secretKeyRingCollection, secretKeyRing);
+					else ManageKeysWindow.showError("Can't import that.");
+				
+				exportSecretKeyRingCollection();
 			}
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -135,8 +142,7 @@ public class ManageKeysController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (PGPException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			ManageKeysWindow.showError("Can't import that.");
 		}
 	}
 	
@@ -252,7 +258,7 @@ public class ManageKeysController {
 			exportSecretKeyRingCollection();
 			ManageKeysWindow.disableError();
 		} catch (PGPException e) {
-			ManageKeysWindow.showError();
+			ManageKeysWindow.showError("Wrong password");
 		}
 	}
 	
