@@ -12,10 +12,6 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
 public class SendMessageWindow extends JFrame {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
 	private static WelcomeWindow welcomeWindow;
 	private File file;
     private File outputDirectory;
