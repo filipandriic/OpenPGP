@@ -8,14 +8,13 @@ import java.io.OutputStream;
 import java.security.SecureRandom;
 
 import org.bouncycastle.bcpg.ArmoredOutputStream;
-<<<<<<< HEAD
-=======
+
 import org.bouncycastle.bcpg.CompressionAlgorithmTags;
 import org.bouncycastle.openpgp.PGPCompressedDataGenerator;
 import org.bouncycastle.openpgp.PGPEncryptedDataGenerator;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
->>>>>>> b5de229f91e91f44713a0898cf30655f5e3f8b3e
+
 import org.bouncycastle.openpgp.PGPPublicKeyRingCollection;
 import org.bouncycastle.openpgp.PGPSecretKeyRing;
 import org.bouncycastle.openpgp.operator.jcajce.JcePGPDataEncryptorBuilder;
