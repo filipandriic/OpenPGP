@@ -38,7 +38,7 @@ public class SendController {
 	//3des with ede conf
 	//aes 128
 	
-	public static void send(File encryptionFile, boolean toEncrypt, boolean toSign, boolean toCompress, boolean toRadix, long secretKeyRingID, List<Long> publicKeyRingCollectionIDs, int algorithm, String password) {
+	public static void send(File encryptionFile, boolean toEncrypt, boolean toSign, boolean toCompress, boolean toRadix, Long secretKeyRingID, List<Long> publicKeyRingCollectionIDs, int algorithm, String password) {
 		OutputStream transmissionOutput = null;
 		PGPSignatureGenerator signatureGenerator = null;
 		try {
