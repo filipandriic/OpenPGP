@@ -8,7 +8,6 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
@@ -16,6 +15,11 @@ import javax.swing.border.EmptyBorder;
 import etf.openpgp.af18273dij18203d.back.ManageKeysController;
 
 public class GenerateKeysWindow extends JFrame {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -4787198390226133430L;
 
 	public GenerateKeysWindow() {
 		init();

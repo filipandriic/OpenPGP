@@ -2,8 +2,6 @@ package etf.openpgp.af18273dij18203d.front;
 
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
-import java.io.File;
-
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -12,7 +10,6 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -21,6 +18,10 @@ import etf.openpgp.af18273dij18203d.back.KeyInfoWrapper;
 import etf.openpgp.af18273dij18203d.back.ManageKeysController;
 
 public class ManageKeysWindow extends JFrame {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3972969992734545296L;
 	private static WelcomeWindow welcomeWindow;
 	private static JList<Object> publicKeysList = new JList<>();
 	private static JList<Object> secretKeysList = new JList<>();
