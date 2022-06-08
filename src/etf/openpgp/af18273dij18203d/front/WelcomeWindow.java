@@ -11,6 +11,10 @@ import javax.swing.border.EmptyBorder;
 
 public class WelcomeWindow extends JFrame {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -7092103610976349174L;
 	private static WelcomeWindow instance;
 	
 	private WelcomeWindow() {

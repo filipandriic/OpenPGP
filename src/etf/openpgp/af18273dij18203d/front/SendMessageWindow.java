@@ -1,6 +1,5 @@
 package etf.openpgp.af18273dij18203d.front;
 
-import java.awt.GridLayout;
 import java.io.File;
 
 import javax.swing.Box;
@@ -15,23 +14,25 @@ import javax.swing.JCheckBox;
 import java.awt.Font;
 import javax.swing.SwingConstants;
 import javax.swing.JLabel;
-import javax.swing.UIManager;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.JComboBox;
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.JTextField;
 import javax.swing.JList;
 import javax.swing.JPasswordField;
 
 public class SendMessageWindow extends JFrame {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 6565822958035798223L;
 	private static WelcomeWindow welcomeWindow;
 	private File file;
 	private File outputDirectory;
 
 	private final JFileChooser fileChooser = new JFileChooser();
 	private JPasswordField password;
-	private JComboBox privateKey;
+	private JComboBox<Long> privateKey;
 
 	public SendMessageWindow() {
 		welcomeWindow = WelcomeWindow.getInstance();
@@ -133,8 +134,8 @@ public class SendMessageWindow extends JFrame {
 		lblNewLabel_3.setBounds(30, 311, 75, 21);
 		panel.add(lblNewLabel_3);
 		
-		JComboBox algorithm = new JComboBox();
-		algorithm.setModel(new DefaultComboBoxModel(new String[] {"3DES", "AES"}));
+		JComboBox<String> algorithm = new JComboBox<String>();
+		algorithm.setModel(new DefaultComboBoxModel<String>(new String[] {"3DES", "AES"}));
 		algorithm.setFont(new Font("Verdana", Font.PLAIN, 12));
 		algorithm.setBounds(282, 141, 111, 21);
 		panel.add(algorithm);
@@ -164,7 +165,7 @@ public class SendMessageWindow extends JFrame {
 		lblNewLabel_5_1.setBounds(434, 200, 135, 21);
 		panel.add(lblNewLabel_5_1);
 		
-		privateKey = new JComboBox();
+		privateKey = new JComboBox<Long>();
 		privateKey.setFont(new Font("Verdana", Font.PLAIN, 12));
 		privateKey.setBounds(577, 200, 135, 21);
 		panel.add(privateKey);
@@ -198,7 +199,7 @@ public class SendMessageWindow extends JFrame {
 		encryptButton.setBounds(518, 391, 194, 58);
 		panel.add(encryptButton);
 		
-		JList publicKeys = new JList();
+		JList<Long> publicKeys = new JList<Long>();
 		publicKeys.setFont(new Font("Verdana", Font.PLAIN, 12));
 		publicKeys.setBounds(577, 141, 135, 21);
 		panel.add(publicKeys);

@@ -2,6 +2,8 @@ package etf.openpgp.af18273dij18203d.front;
 
 import java.awt.Color;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 import javax.swing.Box;
@@ -27,6 +29,7 @@ public class ReceiveMessageWindow extends JFrame {
 	private File file;
 	private File sigFile;
 	private File outputDirectory;
+	private File decryptedFile;
 
 	private final JFileChooser fileChooser = new JFileChooser();
 	private JTextField filename;
@@ -41,7 +44,7 @@ public class ReceiveMessageWindow extends JFrame {
 	@Override
 	public void dispose() {
 		super.dispose();
-		welcomeWindow.setVisible(true);
+		//welcomeWindow.setVisible(true);
 	}
 
 	public void init() {
@@ -50,7 +53,11 @@ public class ReceiveMessageWindow extends JFrame {
 		setLocationRelativeTo(null);
 		setTitle("Receive/Verify files");
 		fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
-
+		this.decryptedFile = null;
+		this.file = null;
+		this.sigFile = null;
+		this.outputDirectory = null;
+		
 		addWindowListener(new java.awt.event.WindowAdapter() {
 			@Override
 			public void windowClosing(java.awt.event.WindowEvent windowEvent) {
@@ -58,7 +65,48 @@ public class ReceiveMessageWindow extends JFrame {
 			}
 		});
 	}
-
+	
+	public boolean saveDecryptedFile() throws IOException {
+		String fileName = String
+				.join("\\", this.outputDirectory.getAbsolutePath(), this.file.getName().split("\\.")[0])
+				.concat(".txt");
+		File newfile = new File(fileName);
+		newfile.createNewFile();
+		FileInputStream in = null;
+	    FileOutputStream out = null;
+        try {
+        	in = new FileInputStream(this.decryptedFile.getAbsoluteFile());
+		    out = new FileOutputStream(newfile);
+            int n;
+            while ((n = in.read()) != -1) {
+                out.write(n);
+            }
+        }
+        catch(Exception exc) {
+        	return false;
+        }
+        finally {
+            if (in != null) {
+                in.close();
+            }
+            if (out != null) {
+                out.close();
+            }
+        }
+        return true;
+	}
+	
+	public boolean decryptFile() {
+		//TODO decryption
+		this.decryptedFile = this.file;
+		return true;
+	}
+	
+	public boolean verifySignature() {
+		//TODO verify signature
+		return true;
+	}
+	
 	public void setComponents() {
 		JPanel panel = new JPanel();
 		panel.setBounds(0, 1, 786, 562);
@@ -70,6 +118,7 @@ public class ReceiveMessageWindow extends JFrame {
 		topPanel.add(Box.createHorizontalGlue());
 		JButton backButton = new JButton("Back");
 		backButton.addActionListener((ev) -> {
+			welcomeWindow.setVisible(true);
 			dispose();
 		});
 		getContentPane().setLayout(null);
@@ -142,10 +191,41 @@ public class ReceiveMessageWindow extends JFrame {
 		lblNewLabel_3.setFont(new Font("Verdana", Font.PLAIN, 12));
 		lblNewLabel_3.setBounds(41, 277, 148, 22);
 		panel.add(lblNewLabel_3);
+		
+		JButton saveButton = new JButton("Save file");
+		saveButton.setEnabled(false);
+		saveButton.setFont(new Font("Verdana", Font.PLAIN, 12));
+		saveButton.setBounds(520, 212, 162, 24);
+		saveButton.addActionListener((e) -> {
+			fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			int result = fileChooser.showSaveDialog(this);
+			if (result == JFileChooser.APPROVE_OPTION) {
+				this.outputDirectory = fileChooser.getSelectedFile();
+				try {
+					saveDecryptedFile();
+				} catch (IOException e1) {
+					System.out.println("Greska sa fajlovima!");
+					e1.printStackTrace();
+				}
+			}
+
+		});
+		panel.add(saveButton);
 
 		JButton decryptButton = new JButton("Decrypt/Verify");
 		decryptButton.setFont(new Font("Verdana", Font.BOLD, 14));
 		decryptButton.setBounds(114, 373, 173, 41);
+		decryptButton.addActionListener(e -> {
+			if(this.file!=null) {
+				boolean status = decryptFile();
+				
+				saveButton.setEnabled(status);
+				
+				if(this.sigFile!=null) {
+					verifySignature();
+				}
+			}
+		});
 		panel.add(decryptButton);
 
 		JTextPane textPane = new JTextPane();
@@ -168,25 +248,5 @@ public class ReceiveMessageWindow extends JFrame {
 		decryptionStatus.setFont(new Font("Verdana", Font.BOLD, 14));
 		decryptionStatus.setBounds(582, 162, 121, 30);
 		panel.add(decryptionStatus);
-
-		JButton saveButton = new JButton("Save file");
-		saveButton.setEnabled(false);
-		saveButton.setFont(new Font("Verdana", Font.PLAIN, 12));
-		saveButton.setBounds(520, 212, 162, 24);
-		saveButton.addActionListener((e) -> {
-			fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-			int result = fileChooser.showSaveDialog(this);
-			if (result == JFileChooser.APPROVE_OPTION) {
-				this.outputDirectory = fileChooser.getSelectedFile();
-				String fileName = String
-						.join("\\", this.outputDirectory.toPath().toString(), this.file.getName().split("\\.")[0])
-						.concat(".txt");
-				File newfile = new File(fileName, "w");
-				
-
-			}
-
-		});
-		panel.add(saveButton);
 	}
 }
