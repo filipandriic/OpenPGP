@@ -113,6 +113,7 @@ public class ReceiveMessageWindow extends JFrame {
 		chooseFileButton.setFont(new Font("Verdana", Font.PLAIN, 12));
 		chooseFileButton.setBounds(283, 206, 97, 30);
 		chooseFileButton.addActionListener((e) -> {
+			fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 			int result = fileChooser.showOpenDialog(this);
 			if (result == JFileChooser.APPROVE_OPTION) {
 			    this.file = fileChooser.getSelectedFile();
@@ -175,9 +176,10 @@ public class ReceiveMessageWindow extends JFrame {
 		saveButton.setFont(new Font("Verdana", Font.PLAIN, 12));
 		saveButton.setBounds(520, 212, 162, 24);
 		saveButton.addActionListener((e) -> {
+			fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 			int result = fileChooser.showSaveDialog(this);
 			if (result == JFileChooser.APPROVE_OPTION) {
-			    this.file = fileChooser.getSelectedFile();
+			    this.outputDirectory = fileChooser.getSelectedFile();
 			    this.filename.setText(this.file.getName());
 			    
 			    String fileName = this.file.getName().split("\\.")[0];

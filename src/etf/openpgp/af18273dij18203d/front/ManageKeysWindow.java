@@ -82,7 +82,7 @@ public class ManageKeysWindow extends JFrame {
 		importPublicKeyButton.addActionListener((ev) -> {
 			JFileChooser fileChooser = new JFileChooser();
 			fileChooser.setFileFilter(new FileNameExtensionFilter("ASCII", "asc"));
-			int returnValue = fileChooser.showSaveDialog(null);
+			int returnValue = fileChooser.showOpenDialog(null);
 			if (returnValue == JFileChooser.APPROVE_OPTION) {
 				ManageKeysController.importPublicKeyRings(fileChooser.getSelectedFile());
 				initializePublicKeysList();
@@ -121,7 +121,7 @@ public class ManageKeysWindow extends JFrame {
 		importSecretKeyButton.addActionListener((ev) -> {
 			JFileChooser fileChooser = new JFileChooser();
 			fileChooser.setFileFilter(new FileNameExtensionFilter("ASCII", "asc"));
-			int returnValue = fileChooser.showSaveDialog(null);
+			int returnValue = fileChooser.showOpenDialog(null);
 			if (returnValue == JFileChooser.APPROVE_OPTION) {
 				ManageKeysController.importSecretKeyRings(fileChooser.getSelectedFile());
 				initializeSecretKeysList();
