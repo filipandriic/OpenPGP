@@ -117,13 +117,17 @@ public class ReceiveMessageWindow extends JFrame {
 			if (result == JFileChooser.APPROVE_OPTION) {
 			    this.file = fileChooser.getSelectedFile();
 			    this.filename.setText(this.file.getName());
-			    String sigpath = this.file.getParent().join("/", (this.filename.getText().split("."))[0].concat(".sig"));
+			    
+			    String fileName = this.file.getName().split("\\.")[0];
+			    String sigpath = String.join("\\",this.file.getParent(), fileName.concat(".sig"));
 			    this.sigFile = new File(sigpath);
-			    if(this.sigFile==null) {
+			    
+			    if(!this.sigFile.exists()) {
 			    	this.signame.setText("None");
+			    	this.sigFile=null;
 			    }
 			    else {
-			    	signame.setText(this.file.getName().split(".")[0].concat(".sig"));
+			    	signame.setText(fileName.concat(".sig"));
 			    }
 			}
 			
@@ -170,6 +174,26 @@ public class ReceiveMessageWindow extends JFrame {
 		saveButton.setEnabled(false);
 		saveButton.setFont(new Font("Verdana", Font.PLAIN, 12));
 		saveButton.setBounds(520, 212, 162, 24);
+		saveButton.addActionListener((e) -> {
+			int result = fileChooser.showSaveDialog(this);
+			if (result == JFileChooser.APPROVE_OPTION) {
+			    this.file = fileChooser.getSelectedFile();
+			    this.filename.setText(this.file.getName());
+			    
+			    String fileName = this.file.getName().split("\\.")[0];
+			    String sigpath = String.join("\\",this.file.getParent(), fileName.concat(".sig"));
+			    this.sigFile = new File(sigpath);
+			    
+			    if(!this.sigFile.exists()) {
+			    	this.signame.setText("None");
+			    	this.sigFile=null;
+			    }
+			    else {
+			    	signame.setText(fileName.concat(".sig"));
+			    }
+			}
+			
+		});
 		panel.add(saveButton);
 	}
 }
