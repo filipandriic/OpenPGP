@@ -78,6 +78,28 @@ public class ManageKeysController {
 		}
 	}
 	
+	public static PGPPublicKeyRing getPublicKeyRing(long keyID) {
+		try {
+			PGPPublicKeyRing publicKeyRing = publicKeyRingCollection.getPublicKeyRing(keyID);
+			return publicKeyRing;
+		} catch (PGPException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public static PGPSecretKeyRing getSecretKeyRing(long keyID) {
+		try {
+			PGPSecretKeyRing secretKeyRing = secretKeyRingCollection.getSecretKeyRing(keyID);
+			return secretKeyRing;
+		} catch (PGPException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
 	public static List<KeyInfoWrapper> loadSecretKeyRingCollection() {
 		List<KeyInfoWrapper> secretKeyRings = new LinkedList<>();
 		
