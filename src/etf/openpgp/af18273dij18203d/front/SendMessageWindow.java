@@ -21,6 +21,8 @@ import java.awt.event.ActionEvent;
 import javax.swing.JComboBox;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JTextField;
+import javax.swing.JList;
+import javax.swing.JPasswordField;
 
 public class SendMessageWindow extends JFrame {
 	private static WelcomeWindow welcomeWindow;
@@ -28,9 +30,8 @@ public class SendMessageWindow extends JFrame {
 	private File outputDirectory;
 
 	private final JFileChooser fileChooser = new JFileChooser();
-	private JTextField publicKey;
-	private JTextField textField;
-	private JTextField privateKey;
+	private JPasswordField password;
+	private JComboBox privateKey;
 
 	public SendMessageWindow() {
 		welcomeWindow = WelcomeWindow.getInstance();
@@ -133,7 +134,6 @@ public class SendMessageWindow extends JFrame {
 		panel.add(lblNewLabel_3);
 		
 		JComboBox algorithm = new JComboBox();
-		algorithm.setEditable(true);
 		algorithm.setModel(new DefaultComboBoxModel(new String[] {"3DES", "AES"}));
 		algorithm.setFont(new Font("Verdana", Font.PLAIN, 12));
 		algorithm.setBounds(282, 141, 111, 21);
@@ -149,32 +149,25 @@ public class SendMessageWindow extends JFrame {
 		lblNewLabel_5.setBounds(434, 141, 133, 21);
 		panel.add(lblNewLabel_5);
 		
-		publicKey = new JTextField();
-		publicKey.setFont(new Font("Verdana", Font.PLAIN, 12));
-		publicKey.setBounds(577, 141, 135, 21);
-		panel.add(publicKey);
-		publicKey.setColumns(10);
-		
 		JLabel passphrase = new JLabel("Passphrase:");
 		passphrase.setFont(new Font("Verdana", Font.PLAIN, 12));
 		passphrase.setBounds(160, 200, 111, 21);
 		panel.add(passphrase);
 		
-		textField = new JTextField();
-		textField.setBounds(282, 200, 111, 21);
-		panel.add(textField);
-		textField.setColumns(10);
+		password = new JPasswordField();
+		password.setBounds(282, 200, 111, 21);
+		panel.add(password);
+		password.setColumns(10);
 		
 		JLabel lblNewLabel_5_1 = new JLabel("Choose private key:");
 		lblNewLabel_5_1.setFont(new Font("Verdana", Font.PLAIN, 12));
 		lblNewLabel_5_1.setBounds(434, 200, 135, 21);
 		panel.add(lblNewLabel_5_1);
 		
-		privateKey = new JTextField();
+		privateKey = new JComboBox();
 		privateKey.setFont(new Font("Verdana", Font.PLAIN, 12));
 		privateKey.setBounds(577, 200, 135, 21);
 		panel.add(privateKey);
-		privateKey.setColumns(10);
 		
 		JLabel lblNewLabel_6 = new JLabel("Choose file:");
 		lblNewLabel_6.setFont(new Font("Verdana", Font.BOLD, 14));
@@ -204,5 +197,10 @@ public class SendMessageWindow extends JFrame {
 		encryptButton.setFont(new Font("Verdana", Font.BOLD, 16));
 		encryptButton.setBounds(518, 391, 194, 58);
 		panel.add(encryptButton);
+		
+		JList publicKeys = new JList();
+		publicKeys.setFont(new Font("Verdana", Font.PLAIN, 12));
+		publicKeys.setBounds(577, 141, 135, 21);
+		panel.add(publicKeys);
 	}
 }
