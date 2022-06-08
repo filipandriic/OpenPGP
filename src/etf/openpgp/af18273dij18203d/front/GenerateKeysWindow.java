@@ -17,6 +17,11 @@ import etf.openpgp.af18273dij18203d.back.ManageKeysController;
 
 public class GenerateKeysWindow extends JFrame {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	public GenerateKeysWindow() {
 		init();
 		setComponents();

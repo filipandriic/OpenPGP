@@ -21,6 +21,10 @@ import etf.openpgp.af18273dij18203d.back.KeyInfoWrapper;
 import etf.openpgp.af18273dij18203d.back.ManageKeysController;
 
 public class ManageKeysWindow extends JFrame {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private static WelcomeWindow welcomeWindow;
 	private static JList<Object> publicKeysList = new JList<>();
 	private static JList<Object> secretKeysList = new JList<>();
