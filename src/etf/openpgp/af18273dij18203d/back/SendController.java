@@ -49,54 +49,11 @@ public class SendController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		// Radix64
+		if (toRadix) transmissionOutput = new ArmoredOutputStream(transmissionOutput);
 
-		// Signing
-		if (toSign) {
-			PGPSecretKeyRing secretKeyRing = ManageKeysController.getSecretKeyRing(secretKeyRingID);
-			
-			if (secretKeyRing == null) {
-				//Window.showError("Bad secret key");
-				return;
-			}
-			
-			PGPPrivateKey privateKey = null;
-			try {
-				privateKey = secretKeyRing.getSecretKey().extractPrivateKey(new JcePBESecretKeyDecryptorBuilder().setProvider("BC").build(password.toCharArray()));
-				signatureGenerator = new PGPSignatureGenerator(new JcaPGPContentSignerBuilder(secretKeyRing.getSecretKey().getPublicKey().getAlgorithm(), PGPUtil.SHA1).setProvider("BC"));
-				signatureGenerator.init(PGPSignature.BINARY_DOCUMENT, privateKey);
-	        
-		        Iterator<String> it = secretKeyRing.getSecretKey().getPublicKey().getUserIDs();
-		        if (it.hasNext())
-		        {
-		            PGPSignatureSubpacketGenerator  signatureSubpacketGenerator = new PGPSignatureSubpacketGenerator();
-		            
-		            signatureSubpacketGenerator.addSignerUserID(false, (String)it.next());
-		            signatureGenerator.setHashedSubpackets(signatureSubpacketGenerator.generate());
-		        }
-			
-				signatureGenerator.generateOnePassVersion(false).encode(transmissionOutput);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (PGPException e) {
-				//Window.showError("Bad password");
-				try {
-					transmissionOutput.close();
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-				file.delete();
-				return;
-			}
-			
-			
-		}
-			
-		// Compression
-		if (toCompress)
-			transmissionOutput = compress(transmissionOutput);
-
+		
 		// Encryption
 		if (toEncrypt) {
 			PGPPublicKeyRingCollection publicKeyRingCollection = null;
@@ -144,10 +101,53 @@ public class SendController {
 				e.printStackTrace();
 			}
 		}
-		
-		// Radix64
-		if (toRadix) transmissionOutput = new ArmoredOutputStream(transmissionOutput);
 
+		// Compression
+		if (toCompress)
+			transmissionOutput = compress(transmissionOutput);
+
+		// Signing
+		if (toSign) {
+			PGPSecretKeyRing secretKeyRing = ManageKeysController.getSecretKeyRing(secretKeyRingID);
+			
+			if (secretKeyRing == null) {
+				//Window.showError("Bad secret key");
+				return;
+			}
+			
+			PGPPrivateKey privateKey = null;
+			try {
+				privateKey = secretKeyRing.getSecretKey().extractPrivateKey(new JcePBESecretKeyDecryptorBuilder().setProvider("BC").build(password.toCharArray()));
+				signatureGenerator = new PGPSignatureGenerator(new JcaPGPContentSignerBuilder(secretKeyRing.getSecretKey().getPublicKey().getAlgorithm(), PGPUtil.SHA1).setProvider("BC"));
+				signatureGenerator.init(PGPSignature.BINARY_DOCUMENT, privateKey);
+	        
+		        Iterator<String> it = secretKeyRing.getSecretKey().getPublicKey().getUserIDs();
+		        if (it.hasNext())
+		        {
+		            PGPSignatureSubpacketGenerator  signatureSubpacketGenerator = new PGPSignatureSubpacketGenerator();
+		            
+		            signatureSubpacketGenerator.addSignerUserID(false, (String)it.next());
+		            signatureGenerator.setHashedSubpackets(signatureSubpacketGenerator.generate());
+		        }
+			
+				signatureGenerator.generateOnePassVersion(false).encode(transmissionOutput);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (PGPException e) {
+				//Window.showError("Bad password");
+				try {
+					transmissionOutput.close();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				file.delete();
+				return;
+			}
+				
+		}
+		
 		// Output
 		PGPLiteralDataGenerator litelDataGenerator = new PGPLiteralDataGenerator();
         OutputStream literalData;

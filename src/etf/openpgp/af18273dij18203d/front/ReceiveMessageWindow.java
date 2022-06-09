@@ -38,7 +38,7 @@ public class ReceiveMessageWindow extends JFrame {
 
 	private final JFileChooser fileChooser = new JFileChooser();
 	private JTextField filename;
-	private JPasswordField password;
+	private JTextField password;
 	private JTextPane signature;
 	private JTextPane verification;
 
@@ -51,7 +51,7 @@ public class ReceiveMessageWindow extends JFrame {
 	@Override
 	public void dispose() {
 		super.dispose();
-		//welcomeWindow.setVisible(true);
+		welcomeWindow.setVisible(true);
 	}
 
 	public void init() {
@@ -105,7 +105,7 @@ public class ReceiveMessageWindow extends JFrame {
 	
 	public boolean decryptFile(){
 		
-		ReceiveController receiver = new ReceiveController(this.file, this.password.getPassword().toString()); 
+		ReceiveController receiver = new ReceiveController(this.file, this.password.getText()); 
 		try {
 			this.decryptedFile = receiver.receive();
 		} catch (Exception e) {
@@ -250,7 +250,7 @@ public class ReceiveMessageWindow extends JFrame {
 		lblNewLabel_3.setBounds(41, 266, 148, 22);
 		panel.add(lblNewLabel_3);
 		
-		password = new JPasswordField();
+		password = new JTextField();
 		password.setFont(new Font("Verdana", Font.PLAIN, 12));
 		password.setBounds(199, 264, 181, 30);
 		panel.add(password);

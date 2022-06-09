@@ -171,7 +171,7 @@ public class ReceiveController {
 				InputStream dIn = ld.getInputStream();
 				OutputStream out = new FileOutputStream(outFileName);
 
-				Streams.pipeAll(dIn, out, 8192);
+//				Streams.pipeAll(dIn, out, 8192);
 
 				out.close();
 
