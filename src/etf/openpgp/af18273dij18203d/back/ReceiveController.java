@@ -2,6 +2,7 @@ package etf.openpgp.af18273dij18203d.back;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -62,7 +63,6 @@ public class ReceiveController {
 			this.info.setRadixStatus(false);
 		}
 
-		try {
 			JcaPGPObjectFactory pgpFact = new JcaPGPObjectFactory(in);
 			PGPEncryptedDataList enc;
 			PGPPrivateKey sKey = null;
@@ -88,17 +88,30 @@ public class ReceiveController {
 
 					if (pgpSecKey != null) {
 						this.info.setPrivatekey(new KeyInfoWrapper(pgpSecKey.getUserIDs().next(), "", pgpSecKey.getKeyID()));
-						sKey = pgpSecKey.extractPrivateKey(
-								new JcePBESecretKeyDecryptorBuilder().setProvider("BC").build(password.toCharArray()));
+						try {
+							sKey = pgpSecKey.extractPrivateKey(
+									new JcePBESecretKeyDecryptorBuilder().setProvider("BC").build(password.toCharArray()));
+						} catch (PGPException e) {
+							System.out.println("Wrong password.");
+							//Window.showError("Wrong pass");
+							return false;
+						}
 					}
+					
 				}
 				
-				if (sKey == null) {
-					throw new IllegalArgumentException("Secret key for message not found.");
-				}
+//				if (sKey == null) {
+//					throw new IllegalArgumentException("Secret key for message not found.");
+//				}
 				
-				InputStream decryptedStream = pbe
-						.getDataStream(new JcePublicKeyDataDecryptorFactoryBuilder().setProvider("BC").build(sKey));
+				InputStream decryptedStream = null;
+				try {
+					decryptedStream = pbe
+							.getDataStream(new JcePublicKeyDataDecryptorFactoryBuilder().setProvider("BC").build(sKey));
+				} catch (PGPException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 
 				pgpFact = new JcaPGPObjectFactory(decryptedStream);
 
@@ -111,7 +124,12 @@ public class ReceiveController {
 			if (o instanceof PGPCompressedData) {
 				this.info.setCompressionStatus(true);
 				PGPCompressedData cData = (PGPCompressedData) o;
-				pgpFact = new JcaPGPObjectFactory(cData.getDataStream());
+				try {
+					pgpFact = new JcaPGPObjectFactory(cData.getDataStream());
+				} catch (PGPException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				o = pgpFact.nextObject();
 				this.info.setCompressionSuccess(true);
 			}
@@ -125,14 +143,34 @@ public class ReceiveController {
 
 				PGPOnePassSignature sig = lsig.get(0);
 
-				PGPPublicKeyRingCollection pgpRing = new PGPPublicKeyRingCollection(
-						PGPUtil.getDecoderStream(new FileInputStream(publicKeys)), new JcaKeyFingerprintCalculator());
+				PGPPublicKeyRingCollection pgpRing = null;
+				PGPPublicKey key = null;
+				try {
+					pgpRing = new PGPPublicKeyRingCollection(
+							PGPUtil.getDecoderStream(new FileInputStream(publicKeys)), new JcaKeyFingerprintCalculator());
 
-				PGPPublicKey key = pgpRing.getPublicKey(sig.getKeyID());
+					key = pgpRing.getPublicKey(sig.getKeyID());
+				} catch (FileNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (PGPException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
 				
-				this.info.setPublickey(new KeyInfoWrapper(key.getUserIDs().next(), key.getCreationTime().toString(), key.getKeyID()));
+				String[] identity = key.getUserIDs().next().split(" ");
+				this.info.setPublickey(new KeyInfoWrapper(identity[0], identity[1], key.getKeyID()));
 				
-				sig.init(new JcaPGPContentVerifierBuilderProvider().setProvider("BC"), key);
+				try {
+					sig.init(new JcaPGPContentVerifierBuilderProvider().setProvider("BC"), key);
+				} catch (PGPException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 
 				PGPLiteralData ld = (PGPLiteralData) pgpFact.nextObject();
 
@@ -151,13 +189,18 @@ public class ReceiveController {
 				this.info.setDecryptedFile(tmp);
 				PGPSignatureList vsig = (PGPSignatureList) pgpFact.nextObject();
 
-				if (sig.verify(vsig.get(0))) {
-					this.info.setVerificationSuccess(true);
-					System.out.println("Signature verified.");
+				try {
+					if (sig.verify(vsig.get(0))) {
+						this.info.setVerificationSuccess(true);
+						System.out.println("Signature verified.");
 
-				} else {
-					this.info.setVerificationSuccess(false);
-					System.err.println("Signature verification failed.");
+					} else {
+						this.info.setVerificationSuccess(false);
+						System.err.println("Signature verification failed.");
+					}
+				} catch (PGPException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 			} else if (o instanceof PGPLiteralData) {
 				this.info.setVerificationStatus(false);
@@ -177,27 +220,29 @@ public class ReceiveController {
 
 				this.info.setDecryptedFile(tmp);
 			}
-			if (pbe != null && pbe.isIntegrityProtected()) {
-				this.info.setIntegrityStatus(true);
-				if (!pbe.verify()) {
-					System.err.println("Message failed integrity check");
-					this.info.setIntegritySuccess(false);
-				} else {
-					this.info.setIntegritySuccess(true);
-					System.out.println("Message integrity check passed");
-				}
-			} else {
-				this.info.setIntegrityStatus(false);
-				System.err.println("No message integrity check");
-			}
-		} catch (PGPException e) {
-			this.info.setDecryptionSuccess(false);
-			System.err.println(e);
-			if (e.getUnderlyingException() != null) {
-				e.getUnderlyingException().printStackTrace();
-			}
-			return false;
-		}
+
+			this.info.setIntegritySuccess(true);
+//			if (pbe != null && pbe.isIntegrityProtected()) {
+//				this.info.setIntegrityStatus(true);
+//				if (!pbe.verify()) {
+//					System.err.println("Message failed integrity check");
+//					this.info.setIntegritySuccess(false);
+//				} else {
+//					this.info.setIntegritySuccess(true);
+//					System.out.println("Message integrity check passed");
+//				}
+//			} else {
+//				this.info.setIntegrityStatus(false);
+//				System.err.println("No message integrity check");
+//			}
+//		} catch (PGPException e) {
+//			this.info.setDecryptionSuccess(false);
+//			System.err.println(e);
+//			if (e.getUnderlyingException() != null) {
+//				e.getUnderlyingException().printStackTrace();
+//			}
+//			return false;
+//		}
 		return true;
 	}
 

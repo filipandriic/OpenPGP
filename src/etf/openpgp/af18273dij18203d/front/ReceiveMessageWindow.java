@@ -223,7 +223,7 @@ public class ReceiveMessageWindow extends JFrame {
 		decryptButton.addActionListener(e -> {
 			if(this.file!=null) {
 				boolean status = decryptFile();
-				showResults();
+				if (status) showResults();
 				saveButton.setEnabled(status);
 			}
 		});
@@ -308,9 +308,9 @@ public class ReceiveMessageWindow extends JFrame {
 		builder = new StringBuilder();
 		builder.append("The file was");
 		if(this.decryptedFile.isVerificationStatus()) {
-			builder.append("signed ");
+			builder.append(" signed ");
 			if(this.decryptedFile.isVerificationSuccess()) {
-				builder.append("successfuly verified.\n The sender details follow:\n" + this.decryptedFile.getPrivatekey().toString());
+				builder.append("successfuly verified.\n");
 			}
 			else {
 				builder.append("but couldn't be verified.");
