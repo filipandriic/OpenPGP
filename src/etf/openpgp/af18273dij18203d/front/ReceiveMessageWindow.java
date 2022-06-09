@@ -15,10 +15,15 @@ import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
+
+import etf.openpgp.af18273dij18203d.back.ReceiveController;
+import etf.openpgp.af18273dij18203d.util.DecypheredInfo;
+
 import javax.swing.JFileChooser;
 import java.awt.Font;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
+import javax.swing.JPasswordField;
 
 public class ReceiveMessageWindow extends JFrame {
 	/**
@@ -27,13 +32,15 @@ public class ReceiveMessageWindow extends JFrame {
 	private static final long serialVersionUID = 1L;
 	private static WelcomeWindow welcomeWindow;
 	private File file;
-	private File sigFile;
+	//private File sigFile;
 	private File outputDirectory;
-	private File decryptedFile;
+	private DecypheredInfo decryptedFile;
 
 	private final JFileChooser fileChooser = new JFileChooser();
 	private JTextField filename;
-	private JTextField signame;
+	private JPasswordField password;
+	private JTextPane signature;
+	private JTextPane verification;
 
 	public ReceiveMessageWindow() {
 		welcomeWindow = WelcomeWindow.getInstance();
@@ -55,7 +62,7 @@ public class ReceiveMessageWindow extends JFrame {
 		fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
 		this.decryptedFile = null;
 		this.file = null;
-		this.sigFile = null;
+//		this.sigFile = null;
 		this.outputDirectory = null;
 		
 		addWindowListener(new java.awt.event.WindowAdapter() {
@@ -75,7 +82,7 @@ public class ReceiveMessageWindow extends JFrame {
 		FileInputStream in = null;
 	    FileOutputStream out = null;
         try {
-        	in = new FileInputStream(this.decryptedFile.getAbsoluteFile());
+        	in = new FileInputStream(this.decryptedFile.getDecryptedFile().getAbsoluteFile());
 		    out = new FileOutputStream(newfile);
             int n;
             while ((n = in.read()) != -1) {
@@ -96,16 +103,25 @@ public class ReceiveMessageWindow extends JFrame {
         return true;
 	}
 	
-	public boolean decryptFile() {
-		//TODO decryption
-		this.decryptedFile = this.file;
+	public boolean decryptFile(){
+		
+		ReceiveController receiver = new ReceiveController(this.file, this.password.getPassword().toString()); 
+		try {
+			this.decryptedFile = receiver.receive();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		if(this.decryptedFile==null) {
+			return false;
+		}
 		return true;
 	}
 	
-	public boolean verifySignature() {
-		//TODO verify signature
-		return true;
-	}
+//	public boolean verifySignature() {
+//		//TODO verify signature
+//		return true;
+//	}
 	
 	public void setComponents() {
 		JPanel panel = new JPanel();
@@ -151,12 +167,6 @@ public class ReceiveMessageWindow extends JFrame {
 		panel.add(filename);
 		filename.setColumns(10);
 
-		signame = new JTextField();
-		signame.setFont(new Font("Verdana", Font.PLAIN, 12));
-		signame.setBounds(199, 275, 181, 30);
-		panel.add(signame);
-		signame.setColumns(10);
-
 		JButton chooseFileButton = new JButton("Browse");
 		chooseFileButton.setFont(new Font("Verdana", Font.PLAIN, 12));
 		chooseFileButton.setBounds(283, 206, 97, 30);
@@ -167,16 +177,16 @@ public class ReceiveMessageWindow extends JFrame {
 				this.file = fileChooser.getSelectedFile();
 				this.filename.setText(this.file.getName());
 
-				String fileName = this.file.getName().split("\\.")[0];
-				String sigpath = String.join("\\", this.file.getParent(), fileName.concat(".sig"));
-				this.sigFile = new File(sigpath);
-
-				if (!this.sigFile.exists()) {
-					this.signame.setText("None");
-					this.sigFile = null;
-				} else {
-					signame.setText(fileName.concat(".sig"));
-				}
+//				String fileName = this.file.getName().split("\\.")[0];
+//				String sigpath = String.join("\\", this.file.getParent(), fileName.concat(".sig"));
+//				this.sigFile = new File(sigpath);
+//
+//				if (!this.sigFile.exists()) {
+//					this.signame.setText("None");
+//					this.sigFile = null;
+//				} else {
+//					signame.setText(fileName.concat(".sig"));
+//				}
 			}
 
 		});
@@ -186,16 +196,11 @@ public class ReceiveMessageWindow extends JFrame {
 		lblNewLabel_2.setFont(new Font("Verdana", Font.PLAIN, 12));
 		lblNewLabel_2.setBounds(41, 165, 148, 22);
 		panel.add(lblNewLabel_2);
-
-		JLabel lblNewLabel_3 = new JLabel("Selected signature file:");
-		lblNewLabel_3.setFont(new Font("Verdana", Font.PLAIN, 12));
-		lblNewLabel_3.setBounds(41, 277, 148, 22);
-		panel.add(lblNewLabel_3);
 		
 		JButton saveButton = new JButton("Save file");
 		saveButton.setEnabled(false);
 		saveButton.setFont(new Font("Verdana", Font.PLAIN, 12));
-		saveButton.setBounds(520, 212, 162, 24);
+		saveButton.setBounds(520, 280, 162, 24);
 		saveButton.addActionListener((e) -> {
 			fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 			int result = fileChooser.showSaveDialog(this);
@@ -218,35 +223,102 @@ public class ReceiveMessageWindow extends JFrame {
 		decryptButton.addActionListener(e -> {
 			if(this.file!=null) {
 				boolean status = decryptFile();
-				
+				showResults();
 				saveButton.setEnabled(status);
-				
-				if(this.sigFile!=null) {
-					verifySignature();
-				}
 			}
 		});
 		panel.add(decryptButton);
 
-		JTextPane textPane = new JTextPane();
-		textPane.setFont(new Font("Verdana", Font.PLAIN, 12));
-		textPane.setBounds(520, 339, 218, 128);
-		panel.add(textPane);
+		this.signature = new JTextPane();
+		this.signature.setFont(new Font("Verdana", Font.PLAIN, 12));
+		this.signature.setBounds(520, 317, 218, 208);
+		this.signature.setEditable(false);
+		panel.add(this.signature);
 
 		JLabel lblNewLabel_4 = new JLabel("Signature:");
 		lblNewLabel_4.setFont(new Font("Verdana", Font.PLAIN, 12));
-		lblNewLabel_4.setBounds(430, 339, 107, 30);
+		lblNewLabel_4.setBounds(430, 317, 107, 30);
 		panel.add(lblNewLabel_4);
-
-		JLabel lblNewLabel_5 = new JLabel("Decryption ");
-		lblNewLabel_5.setHorizontalAlignment(SwingConstants.TRAILING);
-		lblNewLabel_5.setFont(new Font("Verdana", Font.BOLD, 14));
-		lblNewLabel_5.setBounds(433, 162, 148, 30);
-		panel.add(lblNewLabel_5);
 
 		JLabel decryptionStatus = new JLabel("");
 		decryptionStatus.setFont(new Font("Verdana", Font.BOLD, 14));
 		decryptionStatus.setBounds(582, 162, 121, 30);
 		panel.add(decryptionStatus);
+		
+		JLabel lblNewLabel_3 = new JLabel("Enter password:");
+		lblNewLabel_3.setFont(new Font("Verdana", Font.PLAIN, 12));
+		lblNewLabel_3.setBounds(41, 266, 148, 22);
+		panel.add(lblNewLabel_3);
+		
+		password = new JPasswordField();
+		password.setFont(new Font("Verdana", Font.PLAIN, 12));
+		password.setBounds(199, 264, 181, 30);
+		panel.add(password);
+		
+		this.verification = new JTextPane();
+		this.verification.setFont(new Font("Verdana", Font.PLAIN, 12));
+		this.verification.setBounds(430, 162, 326, 108);
+		this.verification.setEditable(false);
+		panel.add(this.verification);
+	}
+	
+	private void showResults() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("The file was ");
+		if(!this.decryptedFile.isDecryptionStatus()) {
+			builder.append("not encrypted.");
+		}
+		else{
+			builder.append("encrypted and decryption ");
+			if(!this.decryptedFile.isDecryptionSuccess()) {
+				builder.append("failed. ");
+			}
+			else {
+				builder.append("succeeded. Data integrity was ");
+				if(this.decryptedFile.isIntegritySuccess()) {
+					builder.append("protected.\n");
+				}
+				else {
+					builder.append("not protected.\n");
+				}
+			}
+		}
+		builder.append("The data was ");
+		if(this.decryptedFile.isCompressionStatus()) {
+			builder.append("compressed ");
+			if(this.decryptedFile.isCompressionSuccess()) {
+				builder.append("and successfuly decompressed.");
+			}
+			else {
+				builder.append("but decompression failed.");
+			}
+		}
+		else {
+			builder.append("not compressed.");
+		}
+		builder.append("Radix64 conversion was");
+		if(this.decryptedFile.isRadixStatus()) {
+			builder.append(" used.\n");
+		}
+		else {
+			builder.append("n't used.\n");
+		}
+		this.verification.setText(builder.toString());
+		
+		builder = new StringBuilder();
+		builder.append("The file was");
+		if(this.decryptedFile.isVerificationStatus()) {
+			builder.append("signed ");
+			if(this.decryptedFile.isVerificationSuccess()) {
+				builder.append("successfuly verified.\n The sender details follow:\n" + this.decryptedFile.getPrivatekey().toString());
+			}
+			else {
+				builder.append("but couldn't be verified.");
+			}
+		}
+		else {
+			builder.append("n't signed.");
+		}
+		this.signature.setText(builder.toString());
 	}
 }

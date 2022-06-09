@@ -11,7 +11,7 @@ public class Main {
 	public static void main(String[] args) {
 		Security.addProvider(new BouncyCastleProvider());
 		ManageKeysController.init();
-		WelcomeWindow welcomeWindow = WelcomeWindow.getInstance();
+		WelcomeWindow.getInstance();
 	}
 
 }

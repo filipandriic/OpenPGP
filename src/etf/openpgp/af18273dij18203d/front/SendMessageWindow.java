@@ -1,7 +1,6 @@
 package etf.openpgp.af18273dij18203d.front;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -26,12 +25,9 @@ import javax.swing.JCheckBox;
 import java.awt.Font;
 import javax.swing.SwingConstants;
 import javax.swing.JLabel;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 import javax.swing.JComboBox;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JList;
-import javax.swing.JPasswordField;
 
 public class SendMessageWindow extends JFrame {
 	/**

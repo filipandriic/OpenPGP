@@ -1,6 +1,5 @@
 package etf.openpgp.af18273dij18203d.back;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -165,6 +164,7 @@ public class SendController {
 	        		signatureGenerator.update((byte)ch);
 	        }
 	        
+	        fileInputStream.close();
 			literalData.close();
 			litelDataGenerator.close();
 			

@@ -41,8 +41,8 @@ public class ManageKeysController {
 	
 	
 	
-	private static String PUBLIC_KEY_RING_COLLECTION_PATH = "public_key_ring_collection.asc";
-	private static String SECRET_KEY_RING_COLLECTION_PATH = "secret_key_ring_collection.asc";
+	public static String PUBLIC_KEY_RING_COLLECTION_PATH = "public_key_ring_collection.asc";
+	public static String SECRET_KEY_RING_COLLECTION_PATH = "secret_key_ring_collection.asc";
 	
 	private static PGPPublicKeyRingCollection publicKeyRingCollection;
 	private static PGPSecretKeyRingCollection secretKeyRingCollection;
