@@ -1,5 +1,6 @@
 package etf.openpgp.af18273dij18203d.back;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -8,6 +9,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.security.SecureRandom;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -42,7 +44,7 @@ public class SendController {
 		OutputStream transmissionOutput = null;
 		PGPSignatureGenerator signatureGenerator = null;
 		try {
-			transmissionOutput = new FileOutputStream(new File("encrypted_message.gpg"));
+			transmissionOutput = new FileOutputStream(new File("encrypted_message_" + new Date().getTime() + ".gpg"));
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -85,8 +87,15 @@ public class SendController {
 		}
 			
 		// Compression
-		if (toCompress)
-			transmissionOutput = compress(transmissionOutput);
+		if (toCompress) {
+			PGPCompressedDataGenerator compressedDataGenerator = new PGPCompressedDataGenerator(CompressionAlgorithmTags.ZIP);
+			try {
+				transmissionOutput = compressedDataGenerator.open(transmissionOutput);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 
 		// Encryption
 		if (toEncrypt) {
@@ -112,7 +121,21 @@ public class SendController {
 				publicKeyRingCollection = PGPPublicKeyRingCollection.addPublicKeyRing(publicKeyRingCollection, publicKeyRing);
 			}
 			
-			transmissionOutput = encrypt(algorithm, publicKeyRingCollection, transmissionOutput);
+			PGPEncryptedDataGenerator encryptedDataGenerator = new PGPEncryptedDataGenerator(
+	                new JcePGPDataEncryptorBuilder(algorithm).setWithIntegrityPacket(true).setSecureRandom(new SecureRandom()).setProvider("BC"));
+
+			for (PGPPublicKeyRing publicKeyRing : publicKeyRingCollection)
+				encryptedDataGenerator.addMethod(new JcePublicKeyKeyEncryptionMethodGenerator(publicKeyRing.getPublicKey()).setProvider("BC"));
+			
+			try {
+				transmissionOutput = encryptedDataGenerator.open(transmissionOutput, new byte[1]);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (PGPException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		
 		// Radix64
@@ -140,6 +163,7 @@ public class SendController {
 			if (toSign)
 				signatureGenerator.generate().encode(transmissionOutput);
 			
+			
 			transmissionOutput.close();
 		} catch (IOException | PGPException e) {
 			// TODO Auto-generated catch block
@@ -157,7 +181,7 @@ public class SendController {
 			encryptedDataGenerator.addMethod(new JcePublicKeyKeyEncryptionMethodGenerator(publicKeyRing.getPublicKey()).setProvider("BC"));
 		
 		try {
-			ret = encryptedDataGenerator.open(message, new byte[1024]);
+			ret = encryptedDataGenerator.open(message, new byte[1]);
 			encryptedDataGenerator.close();
 			return ret;
 		} catch (IOException e) {

@@ -16,9 +16,11 @@ import javax.swing.border.EmptyBorder;
 import org.bouncycastle.openpgp.PGPEncryptedData;
 
 import etf.openpgp.af18273dij18203d.back.KeyInfoWrapper;
+import etf.openpgp.af18273dij18203d.back.ManageKeysController;
 import etf.openpgp.af18273dij18203d.back.SendController;
 
 import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JCheckBox;
 import java.awt.Font;
@@ -48,7 +50,10 @@ public class SendMessageWindow extends JFrame {
 	private boolean radix;
 	private boolean compress;
 	private List<Long> publicKeys = new LinkedList<>();
-	private int algorithm=0;
+	private int algorithm = PGPEncryptedData.TRIPLE_DES;
+
+	private static JList<Object> publicKeysList = new JList<>();
+	private static JComboBox<Object> secretKeysList = new JComboBox<>();
 
 	public SendMessageWindow() {
 		welcomeWindow = WelcomeWindow.getInstance();
@@ -163,11 +168,12 @@ public class SendMessageWindow extends JFrame {
 		lblNewLabel_5_1.setBounds(434, 200, 135, 21);
 		panel.add(lblNewLabel_5_1);
 
-		JComboBox<KeyInfoWrapper> privateKey = new JComboBox<KeyInfoWrapper>();
-		privateKey.setEnabled(false);
-		privateKey.setFont(new Font("Verdana", Font.PLAIN, 12));
-		privateKey.setBounds(577, 200, 135, 21);
-		panel.add(privateKey);
+		initializeSecretKeysList();
+		secretKeysList.setEnabled(false);
+		secretKeysList.setFont(new Font("Verdana", Font.PLAIN, 12));
+		secretKeysList.setBounds(577, 200, 135, 21);
+		
+		panel.add(secretKeysList);
 
 		JLabel lblNewLabel_6 = new JLabel("Choose file:");
 		lblNewLabel_6.setFont(new Font("Verdana", Font.BOLD, 14));
@@ -206,24 +212,38 @@ public class SendMessageWindow extends JFrame {
 		panel.add(selectDirectory);
 
 		JButton encryptButton = new JButton("Encypt/Sign file");
-		encryptButton.addActionListener(e->{
-			SendController.send(file, encrypt, sign, compress, radix, privateKey, this.publicKeys, this.algorithm, this.password.getText());
+		encryptButton.addActionListener((ev) -> {
+			
+			List<Object> selected = publicKeysList.getSelectedValuesList();
+			
+			for (Object select : selected)
+				publicKeys.add(((KeyInfoWrapper)select).getKeyID());
+			
+			if (file == null || publicKeys.isEmpty()) return;
+			
+			SendController.send(file, encrypt, sign, compress, radix, ((KeyInfoWrapper)secretKeysList.getSelectedItem()).getKeyID(), this.publicKeys, this.algorithm, this.password.getText());
 		});
 		encryptButton.setFont(new Font("Verdana", Font.BOLD, 16));
 		encryptButton.setBounds(518, 391, 194, 58);
 		panel.add(encryptButton);
 
-		JList<Long> publicKeys = new JList<Long>();
-		publicKeys.setEnabled(false);
-		publicKeys.setFont(new Font("Verdana", Font.PLAIN, 12));
-		publicKeys.setBounds(577, 141, 135, 21);
-		panel.add(publicKeys);
+		initializePublicKeysList();
+		publicKeysList.setEnabled(false);
+		publicKeysList.setFont(new Font("Verdana", Font.PLAIN, 12));
+		JScrollPane scrollPane = new JScrollPane(publicKeysList);
+		scrollPane.setBounds(577, 81, 135, 100);
+		panel.add(scrollPane);
 
 		JRadioButton encryptRadio = new JRadioButton("");
 		encryptRadio.addActionListener((e) -> {
-			this.encrypt = true;
-			algorithm.setEnabled(true);
-			publicKeys.setEnabled(true);
+			this.encrypt = !this.encrypt;
+			if (this.encrypt) {
+				algorithm.setEnabled(true);
+				publicKeysList.setEnabled(true);
+			} else {
+				algorithm.setEnabled(false);
+				publicKeysList.setEnabled(false);
+			}
 
 		});
 		encryptRadio.setBounds(111, 141, 26, 21);
@@ -233,9 +253,14 @@ public class SendMessageWindow extends JFrame {
 
 		JRadioButton signRadio = new JRadioButton("");
 		signRadio.addActionListener(e -> {
-			this.sign = true;
-			password.setEnabled(true);
-			privateKey.setEnabled(true);
+			this.sign = !this.sign;
+			if (this.sign) {
+				password.setEnabled(true);
+				secretKeysList.setEnabled(true);
+			} else {
+				password.setEnabled(false);
+				secretKeysList.setEnabled(false);
+			}
 		});
 		signRadio.setBounds(111, 200, 26, 21);
 		signRadio.setFont(new Font("Verdana", Font.PLAIN, 12));
@@ -246,7 +271,7 @@ public class SendMessageWindow extends JFrame {
 		radio64.setBounds(111, 311, 26, 21);
 		radio64.setFont(new Font("Verdana", Font.PLAIN, 12));
 		radio64.addActionListener(e->{
-			this.radix = true;
+			this.radix = !this.radix;
 		});
 		panel.add(radio64);
 
@@ -254,9 +279,20 @@ public class SendMessageWindow extends JFrame {
 		compressRadio.setBounds(111, 255, 26, 21);
 		compressRadio.setFont(new Font("Verdana", Font.PLAIN, 12));
 		compressRadio.addActionListener(e -> {
-			this.compress = true;
-			radio64.setEnabled(true);
+			this.compress = !this.compress;
+			if (this.compress)
+				radio64.setEnabled(true);
+			else
+				radio64.setEnabled(false);
 		});
 		panel.add(compressRadio);
+	}
+	
+	public static void initializePublicKeysList() {
+		publicKeysList.setListData(ManageKeysController.loadPublicKeyRingCollection().toArray());
+	}
+	
+	public static void initializeSecretKeysList() {
+		secretKeysList = new JComboBox<>(ManageKeysController.loadSecretKeyRingCollection().toArray());
 	}
 }
