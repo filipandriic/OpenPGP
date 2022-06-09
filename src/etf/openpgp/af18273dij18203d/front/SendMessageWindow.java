@@ -64,7 +64,7 @@ public class SendMessageWindow extends JFrame {
 	@Override
 	public void dispose() {
 		super.dispose();
-		// welcomeWindow.setVisible(true);
+		welcomeWindow.setVisible(true);
 	}
 
 	public void init() {
@@ -216,10 +216,11 @@ public class SendMessageWindow extends JFrame {
 			
 			List<Object> selected = publicKeysList.getSelectedValuesList();
 			
+			publicKeys.clear();
 			for (Object select : selected)
 				publicKeys.add(((KeyInfoWrapper)select).getKeyID());
 			
-			if (file == null || publicKeys.isEmpty()) return;
+			if (file == null || (this.encrypt && publicKeys.isEmpty())) return;
 			
 			SendController.send(file, encrypt, sign, compress, radix, ((KeyInfoWrapper)secretKeysList.getSelectedItem()).getKeyID(), this.publicKeys, this.algorithm, this.password.getText());
 		});
@@ -282,8 +283,11 @@ public class SendMessageWindow extends JFrame {
 			this.compress = !this.compress;
 			if (this.compress)
 				radio64.setEnabled(true);
-			else
+			else {
+				radio64.setSelected(false);
 				radio64.setEnabled(false);
+				this.radix = false;
+			}
 		});
 		panel.add(compressRadio);
 	}

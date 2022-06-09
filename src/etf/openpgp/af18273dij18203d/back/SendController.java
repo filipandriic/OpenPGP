@@ -43,8 +43,9 @@ public class SendController {
 	public static void send(File encryptionFile, boolean toEncrypt, boolean toSign, boolean toCompress, boolean toRadix, Long secretKeyRingID, List<Long> publicKeyRingCollectionIDs, int algorithm, String password) {
 		OutputStream transmissionOutput = null;
 		PGPSignatureGenerator signatureGenerator = null;
+		File file = new File("encrypted_message_" + new Date().getTime() + ".gpg");
 		try {
-			transmissionOutput = new FileOutputStream(new File("encrypted_message_" + new Date().getTime() + ".gpg"));
+			transmissionOutput = new FileOutputStream(file);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -80,6 +81,13 @@ public class SendController {
 				e.printStackTrace();
 			} catch (PGPException e) {
 				//Window.showError("Bad password");
+				try {
+					transmissionOutput.close();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				file.delete();
 				return;
 			}
 			
@@ -87,15 +95,8 @@ public class SendController {
 		}
 			
 		// Compression
-		if (toCompress) {
-			PGPCompressedDataGenerator compressedDataGenerator = new PGPCompressedDataGenerator(CompressionAlgorithmTags.ZIP);
-			try {
-				transmissionOutput = compressedDataGenerator.open(transmissionOutput);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+		if (toCompress)
+			transmissionOutput = compress(transmissionOutput);
 
 		// Encryption
 		if (toEncrypt) {
@@ -115,6 +116,13 @@ public class SendController {
 				
 				if (publicKeyRing == null) {
 					//Window.showError("Bad public key");
+					try {
+						transmissionOutput.close();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					file.delete();
 					return;
 				}
 				
@@ -199,7 +207,6 @@ public class SendController {
 		PGPCompressedDataGenerator compressedDataGenerator = new PGPCompressedDataGenerator(CompressionAlgorithmTags.ZIP);
 		try {
 			ret = compressedDataGenerator.open(message);
-			compressedDataGenerator.close();
 			return ret;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
